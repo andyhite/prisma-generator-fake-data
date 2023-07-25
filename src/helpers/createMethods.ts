@@ -27,7 +27,7 @@ function getFieldDefinition(
       return `${field.name}: ${fakeValue || field.default?.toString() || '{}'}`;
     }
     if (field.kind === 'enum') {
-      return `${field.name}: ${field.type}.${field.default}`;
+      return `${field.name}: "${field.default}"`;
     }
     if (['Int', 'BigInt', 'Float', 'Decimal', 'Boolean'].includes(field.type)) {
       return `${field.name}: ${field.default}`;
@@ -51,7 +51,7 @@ function getFieldDefinition(
       );
     } else {
       const enumValuesAsString = enumValues
-        .map((v) => `${enumName}.${v.name}`)
+        .map((v) => `"${v.name}"`)
         .join(', ');
       return `${field.name}: faker.helpers.arrayElement([${enumValuesAsString}] as const)`;
     }
@@ -137,7 +137,7 @@ function getFieldDefinition(
   return null;
 }
 
-export async function createMethods(
+export function createMethods(
   { enums, models }: DMMF.Datamodel,
   extraImport?: string,
   extraExport?: string,
@@ -146,19 +146,17 @@ export async function createMethods(
   const functions: string[] = [];
 
   models.forEach((m) => {
-    createFakeFunctionsWithoutFKs(models, m, enums, functions, emptyValueAs);
-    createFakeFunctionsWithFKs(models, m, enums, functions, emptyValueAs);
+    createFakeFunctions(models, m, enums, functions, emptyValueAs);
   });
-  const enumNames = enums.map((it) => it.name).join(', ');
-  return await `import { ${enumNames} } from '@prisma/client';
-import { faker } from '@faker-js/faker';
+  return `import { faker } from '@faker-js/faker';
 ${extraImport || ''}
 ${extraExport || ''}
 
 ${functions.join('\n')}
 `;
 }
-function createFakeFunctionsWithoutFKs(
+
+function createFakeFunctions(
   models: DMMF.Model[],
   model: DMMF.Model,
   enums: DMMF.DatamodelEnum[],
@@ -166,41 +164,12 @@ function createFakeFunctionsWithoutFKs(
   emptyValueAs: string,
 ) {
   const validFields = model.fields
-    .filter((field) => !field.isId)
     .filter((field) => field.kind === 'scalar' || field.kind === 'enum')
-    .filter((field) => {
-      return !model.fields.find((it) => {
-        return it.relationFromFields?.includes(field.name);
-      });
-    })
-    .filter((field) => !field.hasDefaultValue)
     .map((f) => getFieldDefinition(models, model, f, enums, emptyValueAs))
     .filter(Boolean);
   if (validFields.length > 0) {
     functions.push(
       `export function fake${model.name}() {
-  return {
-    ${validFields.join(',\n    ')},
-  };
-}`,
-    );
-  }
-}
-
-function createFakeFunctionsWithFKs(
-  models: DMMF.Model[],
-  model: DMMF.Model,
-  enums: DMMF.DatamodelEnum[],
-  functions: string[],
-  emptyValueAs: string,
-) {
-  const validFields = model.fields
-    .filter((field) => field.kind === 'scalar' || field.kind === 'enum')
-    .map((f) => getFieldDefinition(models, model, f, enums, emptyValueAs))
-    .filter(Boolean);
-  if (validFields.length > 0) {
-    functions.push(
-      `export function fake${model.name}Complete() {
   return {
     ${validFields.join(',\n    ')},
   };

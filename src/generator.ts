@@ -31,7 +31,7 @@ generatorHandler({
       'emptyValueAs must be a string or empty',
     );
 
-    const fakeMethods = await createMethods(
+    const fakeMethods = createMethods(
       options.dmmf.datamodel,
       options.generator.config.extraImport as string | undefined,
       options.generator.config.extraExport as string | undefined,
