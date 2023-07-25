@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "npx tsc",
-    "prepack": "yarn build",
+    "prepack": "pnpm build",
     "test": "vitest run",
     "test:watch": "vitest",
     "release": "release-it"
