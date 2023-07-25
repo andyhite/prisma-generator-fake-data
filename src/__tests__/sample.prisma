@@ -21,6 +21,7 @@ model User {
   nullableInt            Int?
   bigInt                 BigInt
   bigIntWithDefault      BigInt        @default(1)
+  decimal                Decimal       @db.Decimal(10, 2)
   nullableBigInt         BigInt?
   float                  Float
   floatWithDefault       Float         @default(1.1)

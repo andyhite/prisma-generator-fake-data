@@ -104,9 +104,9 @@ function getFieldDefinition(
   }
   if (field.type === 'Decimal') {
     if (field.isList) {
-      return `${field.name}: [faker.datatype.hexaDecimal(),faker.datatype.hexaDecimal(),faker.datatype.hexaDecimal(),faker.datatype.hexaDecimal(),faker.datatype.hexaDecimal()]`;
+      return `${field.name}: [faker.datatype.number({ precision: 0.01 }),faker.datatype.number({ precision: 0.01 }),faker.datatype.number({ precision: 0.01 }),faker.datatype.number({ precision: 0.01 }),faker.datatype.number({ precision: 0.01 })]`;
     }
-    return `${field.name}: faker.datatype.hexaDecimal()`;
+    return `${field.name}: faker.datatype.number({ precision: 0.01 })`;
   }
   if (field.type === 'DateTime') {
     if (field.isList) {
